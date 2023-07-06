@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result</title>
+</head>
+<body>
+    <h1>Selected Genres:</h1>
+    <ul>
+        {% for genre in genres %}
+        <li>{{ genre }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Selected Tags:</h1>
+    <ul>
+        {% for tag in tags %}
+        <li>{{ tag }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Disliked Genres:</h1>
+    <ul>
+        {% for genre in disliked_genres %}
+        <li>{{ genre }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Disliked Tags:</h1>
+    <ul>
+        {% for tag in disliked_tags %}
+        <li>{{ tag }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Selected Years:</h1>
+    <ul>
+        {% for year in years %}
+        <li>{{ year }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Selected Languages:</h1>
+    <ul>
+        {% for language in languages %}
+        <li>{{ language }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Wishes:</h1>
+    <p>{{ wishes }}</p>
+</body>
+</html>
