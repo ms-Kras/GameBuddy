@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Rating</title>
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #343a40;
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #fd7e14;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e86b00;
+        }
+    </style>
+</head>
+<body>
+    {% if game %}
+        <h1>Rate the Game</h1>
+        <p>{{ game }}</p>
+        <form action="/rate" method="post">
+            <input type="hidden" name="game_id" value="{{ game }}">
+            <button type="submit" name="rating" value="like">Нравится</button>
+            <button type="submit" name="rating" value="dislike">Не нравится</button>
+        </form>
+    {% else %}
+        <h1>Game Recommendations Completed</h1>
+        <p>You have rated all the games.</p>
+    {% endif %}
+</body>
+</html>
