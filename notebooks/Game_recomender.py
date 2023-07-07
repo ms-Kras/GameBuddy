@@ -39,13 +39,13 @@ class GameRecommender:
         weights = pd.DataFrame(cosine_similarity(vectors))
         return weights
 
-    def search_movies_by_term(self, term='movie'):
+    def search_games_by_term(self, term='game'):
         term = term.lower()
-        movies = self.df[self.title_column].values
-        possible_options = [(i, movie) for i, movie in enumerate(movies) for word in movie.lower().split(' ') if word == term]
+        games = self.df[self.title_column].values
+        possible_options = [(i, game) for i, game in enumerate(games) for word in game.lower().split(' ') if word == term]
         return possible_options    
     
-    def recommend_movies_by_text(self, input_text, n=5):
+    def recommend_games_by_text(self, input_text, n=5):
         normalized_input = self.__normalize_text(input_text)
 
         # Get the features
@@ -58,10 +58,10 @@ class GameRecommender:
         # Calculate cosine similarity
         similarities = cosine_similarity(base_vectors, new_vector)
         similar_indices = np.argsort(-similarities.flatten())[:n]
-        movies = self.df[self.title_column].values
-        recommended_movies = movies[similar_indices]
+        games = self.df[self.title_column].values
+        recommended_games = games[similar_indices]
         
-        return '\n'.join([movie for movie in recommended_movies])
+        return '\n'.join([game for game in recommended_games])
 
 
     def __normalize_text(self, text):
