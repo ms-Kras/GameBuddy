@@ -5,28 +5,49 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from lightfm import LightFM
 from scipy.sparse import csr_matrix
+import re
+from bs4 import BeautifulSoup
 
 
 class LightfmRecomender: 
     
-    def __init__(self, users_games_df_path, item_dict_path):
+    def __init__(self, gametime_df_path, item_dict_path):
 
-        self.id = None
-        self.users_games_df = pd.read_csv(users_games_df_path)
-        self.users_games_df.columns = ['steam_id', 'game_id', 'ranking']
+        self.gametime_df = pd.read_csv(gametime_df_path)
+        self.scaler = MinMaxScaler(feature_range=(0,10))
+        self.gametime_df = self.__gametime_transform(self.gametime_df)
+        self.gametime_df.columns = ['steam_id', 'game_id', 'ranking']
         self.item_dict = json.load(open(item_dict_path))
         self.item_dict = {int(k): v for k, v in self.item_dict.items()}
-        self.scaler = MinMaxScaler(feature_range=(0, 100))
         self.model = LightFM(loss='bpr',
                             random_state=42,
                             learning_rate=0.10,
                             no_components=100,
                             user_alpha=0.000005)
         
-
-
-    def get_user_games(self, steamid):
+    def __get_profile_id(self, url):
         
+        userpage = requests.get(url)
+        user_page = BeautifulSoup(userpage.content, 'lxml')
+        text = str(user_page.find('div', class_="responsive_page_template_content"))
+        steamid = int(text[text.find('"steamid"')+11:text.find('"steamid"')+28])
+        
+        return steamid
+
+    def __gametime_transform(self, df): 
+        
+        transformed_df = pd.melt(df, id_vars='steamid', var_name='game_id', value_name='ranking')
+        transformed_df['game_id'] = transformed_df['game_id'].astype(int)
+        transformed_df['ranking'] = np.log(transformed_df['ranking'].replace(0, np.nan)).replace(-np.inf, np.nan)
+        transformed_df['ranking'] = self.scaler.fit_transform(transformed_df[['ranking']])
+        transformed_df['ranking'] = pd.to_numeric(transformed_df['ranking']).astype('float32')
+        
+        return transformed_df
+
+    def get_user_games(self, url):
+        
+        steamid = self.__get_profile_id(url)
+
         url = f'https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=ED07BAAA8209FFE5932318F82B8242A6&format=json&steamid={steamid}'
         response = requests.get(url)
         profile = response.json()
@@ -43,7 +64,7 @@ class LightfmRecomender:
        
         transformed_user_profile = pd.melt(id_df, id_vars='steam_id', var_name='game_id', value_name='ranking')
         transformed_user_profile['game_id'] = transformed_user_profile['game_id'].astype(int)
-        transformed_user_profile = pd.DataFrame(transformed_user_profile, columns=['steam_id', 'game_id', 'ranking'])
+        transformed_user_profile['ranking'] = np.log(transformed_user_profile['ranking'].replace(0, np.nan)).replace(-np.inf, np.nan)
         transformed_user_profile['ranking'] = self.scaler.fit_transform(transformed_user_profile[['ranking']])
         transformed_user_profile['ranking'] = pd.to_numeric(transformed_user_profile['ranking'])
         games_ids_df = self.__get_unique_games_ids()
@@ -53,16 +74,29 @@ class LightfmRecomender:
             
         return merged_df
     
+    def get_user_games_cold_start (self, df): 
+        df.columns = ['game_name', 'ranking']
+        df['game_id'] = df['game_name'].map({v: k for k, v in self.item_dict.items()})
+        df['ranking'] = self.scaler.fit_transform(df[['ranking']])
+        df.drop('game_name', axis=1)
+        games_ids_df = self.__get_unique_games_ids()
+        df = games_ids_df.merge(df, on='game_id', how='left')
+        df['steam_id'] = 1234567891010102930
+        df.fillna(0, inplace=True)
+        
+        return df
+
+    
     
     def __get_unique_games_ids (self): 
-        games_ids = self.users_games_df['game_id'].unique()
+        games_ids = self.gametime_df['game_id'].unique()
         games_ids_df = pd.DataFrame(games_ids, columns=['game_id']).astype(int)
 
         return games_ids_df
     
     def get_csr_matrix_for_all_users (self, df_user): 
         one_user_interactions = pd.pivot_table(df_user, index='steam_id', columns='game_id', values='ranking')
-        all_users_interactions = pd.pivot_table(self.users_games_df, index='steam_id', columns='game_id', values='ranking')
+        all_users_interactions = pd.pivot_table(self.gametime_df, index='steam_id', columns='game_id', values='ranking')
         new_user_added_df = pd.concat([all_users_interactions, one_user_interactions], axis=0)
         new_user_added_df = new_user_added_df.fillna(0)
         new_user_added_df_csr = csr_matrix(new_user_added_df)
