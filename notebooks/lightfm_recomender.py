@@ -40,15 +40,9 @@ class LightfmRecomender:
                 appid: [playtime]
             })
             id_df = pd.merge(id_df, temp_df, on='steam_id', how='inner')
-            transformed_user_profile = []
-        
-            for index, row in id_df.iterrows():
-                user_id = row.values[0]
-
-                for game_ids, ranking in row.items():
-                    if game_ids != 'steam_id':
-                        transformed_user_profile.append([user_id, game_ids, ranking])
-
+       
+        transformed_user_profile = pd.melt(id_df, id_vars='steam_id', var_name='game_id', value_name='ranking')
+        transformed_user_profile['game_id'] = transformed_user_profile['game_id'].astype(int)
         transformed_user_profile = pd.DataFrame(transformed_user_profile, columns=['steam_id', 'game_id', 'ranking'])
         transformed_user_profile['ranking'] = self.scaler.fit_transform(transformed_user_profile[['ranking']])
         transformed_user_profile['ranking'] = pd.to_numeric(transformed_user_profile['ranking'])
