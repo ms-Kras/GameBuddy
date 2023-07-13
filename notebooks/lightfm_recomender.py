@@ -72,7 +72,7 @@ class LightfmRecomender:
         merged_df['steam_id'] = steamid
         merged_df.fillna(0, inplace=True)
             
-        return merged_df
+        return merged_df, steamid
     
     def get_user_games_cold_start (self, df): 
         df.columns = ['game_name', 'ranking']
@@ -84,7 +84,7 @@ class LightfmRecomender:
         df['steam_id'] = 1234567891010102930
         df.fillna(0, inplace=True)
         
-        return df
+        return df, df['steam_id'][0]
 
     
     
