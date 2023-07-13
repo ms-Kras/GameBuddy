@@ -36,11 +36,11 @@ class LightfmRecomender:
 
     def __gametime_transform(self, df): 
         
+        df.iloc[:,:-1] = np.log(df.iloc[:,:-1])
+        df.iloc[:,:-1] = df.iloc[:,:-1].replace([np.inf, -np.inf], 0.0)
+        df.iloc[:,:-1] = self.scaler.fit_transform(df.iloc[:,:-1])
         transformed_df = pd.melt(df, id_vars='steamid', var_name='game_id', value_name='ranking')
         transformed_df['game_id'] = transformed_df['game_id'].astype(int)
-        transformed_df['ranking'] = np.log(transformed_df['ranking'].replace(0, np.nan)).replace(-np.inf, np.nan)
-        transformed_df['ranking'] = self.scaler.fit_transform(transformed_df[['ranking']])
-        transformed_df['ranking'] = pd.to_numeric(transformed_df['ranking']).astype('float32')
         
         return transformed_df
 
