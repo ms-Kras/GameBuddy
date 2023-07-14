@@ -17,12 +17,22 @@
         p {
             font-size: 18px;
             margin-bottom: 20px;
+            text-align: center;
+            white-space: pre-line;
         }
+
+        .form__button {
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+          margin: 40px 0;
+        }
+
         button {
             background-color: #fd7e14;
             color: #000;
             border: none;
-            padding: 10px 20px;
+            padding: 20px 40px;
             font-size: 16px;
             border-radius: 5px;
             margin-right: 10px;
@@ -31,20 +41,72 @@
         button:hover {
             background-color: #e86b00;
         }
+        input[type="range"] {
+            transform: scale(4);
+            -webkit-appearance: slider-horizontal;
+        }
+
+        #rating-label {
+          margin-top: 45px;
+        }
     </style>
 </head>
 <body>
     {% if game %}
         <h1>Rate the Game</h1>
         <p>{{ game }}</p>
-        <form action="/rate" method="post">
-            <input type="hidden" name="game_id" value="{{ game }}">
-            <button type="submit" name="rating" value="like">Нравится</button>
-            <button type="submit" name="rating" value="dislike">Не нравится</button>
+        <p>{{ description }}</p>
+        
+        <form action="{{ url_for('rate') }}" method="POST" class="form">
+            <input type="range" id="rating-slider" name="rating" min="0" max="10" step="1" list="rating-options" oninput="updateLabel()">
+            <p id="rating-label"></p>
+            <datalist id="rating-options">
+              <option value="0">Didn't play</option>
+              <option value="1">1 - Not Good</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5 - Average</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10 - Best of the best</option>
+            </datalist>
+            <div class="form__button">
+              <button type="submit" name="action" value="Next">Next</button>
+              <button type="submit" name="action" value="Stop">Stop</button>
+            </div>
         </form>
     {% else %}
         <h1>Game Recommendations Completed</h1>
-        <p>You have rated all the games.</p>
+        <p>{{ lfm_reccomendations }}</p>
     {% endif %}
+
+    <script>
+        let ratingDescriptions = [
+            "Didn't play",
+            "1 - Hot Garbage",
+            "2 - Meh...Just Meh",
+            "3 - Could Be Worse",
+            "4 - Kinda Sorta Okayish",
+            "5 - Average Joe",
+            "6 - Keeps Me Hooked",
+            "7 - Pretty Impressive",
+            "8 - Great Scott!",
+            "9 - Awesome Sauce",
+            "10 - Unicorn Tears"
+        ];
+
+        function updateLabel() {
+            let slider = document.getElementById('rating-slider');
+            let label = document.getElementById('rating-label');
+            label.textContent = ratingDescriptions[slider.value];
+        }
+
+        // Call updateLabel to set the initial description
+        window.onload = updateLabel;
+    </script>
+
 </body>
 </html>

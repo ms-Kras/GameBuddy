@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html style="height: 100%">
 <head>
     <title>Game Rating</title>
     <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -28,29 +28,18 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                {% if game %}
-                <div class="game-card">
-                    <h3>{{ game }}</h3>
-                    <div class="rate-buttons">
-                        <form action="/rate" method="POST">
-                            <input type="hidden" name="rating" value="like">
-                            <button type="submit" class="btn btn-primary">Like</button>
-                        </form>
-                        <form action="/rate" method="POST">
-                            <input type="hidden" name="rating" value="dislike">
-                            <button type="submit" class="btn btn-primary">Dislike</button>
-                        </form>
-                    </div>
-                </div>
-                {% else %}
-                <div class="text-center">
-                    <h3>No more games to rate.</h3>
-                </div>
-                {% endif %}
+<body style="height: 100%">
+    <div class="container" style="width: 100%; height: 100%;">
+        <div class="row justify-content-center" style="width: 100%; height: 100%">
+            <div class="align-center">
+                <table style="width: 100%; height: 80%; vertical-align: middle;">
+                    {% for recommendation in lfm_reccomendations %}
+                    <tr>
+                        <td style="width: 25%; vertical-align: middle;">{{ recommendation[0] }}</td>
+                        <td style="width: 75%; vertical-align: middle;">{{ recommendation[1] }}</td>                        
+                    </tr>                  
+                    {% endfor %}
+                </table>
             </div>
         </div>
     </div>
