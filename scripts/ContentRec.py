@@ -128,7 +128,7 @@ class ContentRec:
         conn = self.connect_db()
         self.game_info = pd.read_sql_query(f"SELECT * FROM game_info", conn)
         conn.close()
-        self.appids_list = np.load('/home/nika/GameBuddy/GB.app/appids.npy', allow_pickle=True)
-        self.V_matrix = np.load('/home/nika/GameBuddy/GB.app/user_matrix.npy')
+        self.appids_list = np.load('GB.app/appids.npy', allow_pickle=True)
+        self.V_matrix = np.load('GB.app/user_matrix.npy')
 
 

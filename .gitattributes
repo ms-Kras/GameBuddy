@@ -23,4 +23,6 @@
 # with the python modules ``pickle``, ``dbm.*``,
 # ``shelve``, ``marshal``, ``anydbm``, & ``bsddb``
 # (among others).
+#LFS Files
+final_gametime_df.csv
 data/final_gametime_df.csv filter=lfs diff=lfs merge=lfs -text

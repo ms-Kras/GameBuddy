@@ -1,11 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for
-from ContentRec import ContentRec
+from scripts.ContentRec import ContentRec
+from scripts.lightfm_recomender import LightfmRecomender
+import pandas as pd
 import sqlite3
 
 
-app = Flask(__name__, template_folder='/home/nika/GameBuddy/GB.app/templates/opros')
 
-db_path = '/home/nika/GameBuddy/GB.app/database.db'
+app = Flask(__name__, template_folder='/Users/vasevooo/projects/GameBuddy/GB.app/templates/opros')
+DB_PATH = 'GB.app/database.db'
+
 
 genres = ['Action', 'Adventure', 'AnimationModeling', 'AudioProduction', 'Casual', 'DesignIllustration', 'EarlyAccess', 'Education', 
           'FreetoPlay', 'GameDevelopment', 'Indie', 'MassivelyMultiplayer', 'Movie', 'PhotoEditing', 'RPG', 'Racing', 'Simulation', 
@@ -141,7 +144,7 @@ def get_user_data():
 
 # -------------------------------------------новая версия, Ванина модель--------------------------------------------------
 # Создание экземпляра класса GameBuddy и инициализация данных
-game_buddy = ContentRec('/home/nika/GameBuddy/GB.app/database.db')
+game_buddy = ContentRec(DB_PATH)
 print('class created')
 game_buddy.initialize()
 print('class initiated')
@@ -165,16 +168,14 @@ game_app = GameRecommendationApp(recommendations)
 print('class created')
 # -------------------------------------------новая версия, Ванина модель--------------------------------------------------
 # ----------------------------------вот этот кусок вставить для получения списка рекомендаций------------------------------------------#
-from lightfm_recomender import LightfmRecomender
-import pandas as pd
 
-db_path = '/home/nika/GameBuddy/GB.app/database.db'
+db_path = DB_PATH
 
 
 
 ####-------steam--------###
 def get_user_steam():
-    conn = sqlite3.connect('/home/nika/GameBuddy/GB.app/database.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT steams FROM user_data ORDER BY rowid DESC LIMIT 1;")
     steams = cursor.fetchone()[0]
@@ -186,7 +187,7 @@ steam_url=get_user_steam()
 ####-------steam--------###
 
 def lfm_games_with_descriptions(top5):
-    conn = sqlite3.connect('/home/nika/GameBuddy/GB.app/database.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     placeholders = ', '.join(['?'] * len(top5))
     query = f"SELECT Name, description FROM game_info WHERE Name IN ({placeholders})"
@@ -206,22 +207,22 @@ def lfm_game_info_table(db_path):
 
 
 df_cold_start = lfm_game_info_table(db_path)
-item_dict_path = '/home/nika/GameBuddy/data/for_models/item_dict.json'
-gametime_df_path = '/home/nika/GameBuddy/data/final_gametime_df.csv'
+item_dict_path = 'data/for_models/item_dict.json'
+gametime_df_path = 'data/final_gametime_df.csv'
 lfr = LightfmRecomender(gametime_df_path, item_dict_path)
 
-# if steam_url == '':
-#     cold_start_user, steamid_cold = lfr.get_user_games_cold_start(df_cold_start)
-#     matrix_cs, df_cs = lfr.get_csr_matrix_for_all_users(cold_start_user)
-#     model = lfr.fit_model(matrix_cs, epochs=10)
-#     top_10=lfr.sample_recommendation_user(model, df_cs, steamid_cold, threshold = 0, nrec_items = 10,show=False)
-# else:
-#     new_user, steamid = lfr.get_user_games(steam_url)
-#     matrix, df = lfr.get_csr_matrix_for_all_users(new_user)
-#     model = lfr.fit_model(matrix, epochs=10)
-#     top_10=lfr.sample_recommendation_user(model, df, steamid, threshold = 0, nrec_items = 10,show=False)
+if steam_url == '':
+    cold_start_user, steamid_cold = lfr.get_user_games_cold_start(df_cold_start)
+    matrix_cs, df_cs = lfr.get_csr_matrix_for_all_users(cold_start_user)
+    model = lfr.fit_model(matrix_cs, epochs=10)
+    top_10=lfr.sample_recommendation_user(model, df_cs, steamid_cold, threshold = 0, nrec_items = 10,show=False)
+else:
+    new_user, steamid = lfr.get_user_games(steam_url)
+    matrix, df = lfr.get_csr_matrix_for_all_users(new_user)
+    model = lfr.fit_model(matrix, epochs=10)
+    top_10=lfr.sample_recommendation_user(model, df, steamid, threshold = 0, nrec_items = 10,show=False)
 
-# lfm_reccomendations=lfm_games_with_descriptions(top_10)
+lfm_reccomendations=lfm_games_with_descriptions(top_10)
 # ----------------------------------вот этот кусок вставить для получения списка рекомендаций-----------------------------------------#
 @app.route('/recommendations')
 def recommendations():
@@ -299,4 +300,4 @@ def rate():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=False)
